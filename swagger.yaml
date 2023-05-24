@@ -1,702 +1,271 @@
 ---
 swagger: "2.0"
 info:
-  description: "This is a sample server Petstore server.  You can find out more about\
-    \ Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).\
-    \  For this sample, you can use the api key `special-key` to test the authorization\
-    \ filters."
-  version: "1.0.5"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
-  contact:
-    email: "apiteam@swagger.io"
-  license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
+  description: "Dokumentacija API ruta za projekt \"Safe Home\" alarmna centrala iz predmeta Ambijentalna inteligencija i podržano življenje na Fakultetu elektrotehnike i računarstva."
+  version: "1.0.0"
+  title: "Safe Home Dokumentacija"
 tags:
-- name: "pet"
-  description: "Everything about your Pets"
-  externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
-- name: "store"
-  description: "Access to Petstore orders"
-- name: "user"
+- name: "ESP32"
+  description: "Operations related to ESP32 microcontroller"
+- name: "Mobile"
+  description: "Operations related to the mobile device"
+- name: "User"
   description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://swagger.io"
 schemes:
 - "https"
 - "http"
 paths:
-  /pet/{petId}/uploadImage:
+  /motion/detectMotion:
     post:
       tags:
-      - "pet"
-      summary: "uploads an image"
-      description: ""
-      operationId: "uploadFile"
+      - "ESP32"
+      summary: "detects a motion"
+      description: "Sent when a motion sensor detects a motion.\n Notify the backend that a motion has been detected and save the motion in the database."
+      operationId: "detectMotion"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "body"
+        in: "body"
+        required: true
+        description: "MotionPostBody object"
+        schema:
+          $ref: "#/definitions/MotionPostBody"
+      responses:
+        200:
+          description: "Successful operation"
+        400:
+          description: "Invalid data supplied"
+        401:
+          description: "Unauthorized"
+  /user/getUserDetails/{deviceId}:
+    get:
+      tags:
+      - "ESP32"
+      summary: "retrieves user details"
+      description: "Get user details for the current device from the API and store them in temporary memory.\n Check stored user details when performing arming operations.\n Should be called periodically."
+      operationId: "getUserDetails"
       consumes:
       - "multipart/form-data"
       produces:
       - "application/json"
       parameters:
-      - name: "petId"
+      - name: "deviceId"
         in: "path"
-        description: "ID of pet to update"
+        description: "Id of the device that is calling the API"
         required: true
         type: "integer"
-        format: "int64"
-      - name: "additionalMetadata"
-        in: "formData"
-        description: "Additional data to pass to server"
-        required: false
-        type: "string"
-      - name: "file"
-        in: "formData"
-        description: "file to upload"
-        required: false
-        type: "file"
       responses:
         200:
-          description: "successful operation"
+          description: "User retrieved successfully"
           schema:
-            $ref: "#/definitions/ApiResponse"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet:
-    post:
-      tags:
-      - "pet"
-      summary: "Add a new pet to the store"
-      description: ""
-      operationId: "addPet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    put:
-      tags:
-      - "pet"
-      summary: "Update an existing pet"
-      description: ""
-      operationId: "updatePet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
+            $ref: "#/definitions/User"
         400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-        405:
-          description: "Validation exception"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByStatus:
+          description: "Invalid deviceId"
+
+  /user/{userId}/getAlarmSystems:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
+      - "Mobile"
+      summary: "retrieves user alarm systems"
+      description: "Returns all alarm systems that belong to the user.\nUser can have 1..n alarm systems register to their name."
+      operationId: "getAlarmSystems"
       produces:
       - "application/json"
-      - "application/xml"
       parameters:
-      - name: "status"
-        in: "query"
-        description: "Status values that need to be considered for filter"
+      - name: "userId"
+        in: "path"
+        description: "Id of the user"
         required: true
-        type: "array"
-        items:
-          type: "string"
-          enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
-        collectionFormat: "multi"
+        type: "integer"
       responses:
         200:
-          description: "successful operation"
+          description: "Successful operation"
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/Pet"
+              $ref: "#/definitions/AlarmSystem"
         400:
-          description: "Invalid status value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByTags:
-    get:
+          description: "Invalid userId"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /user/changePassword:
+    post:
       tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Multiple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
-      produces:
+      - "Mobile"
+      summary: "retrieves user alarm systems"
+      description: "Returns all alarm systems that belong to the user.\nUser can have 1..n alarm systems register to their name."
+      operationId: "changePassword"
+      consumes:
       - "application/json"
-      - "application/xml"
       parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
+      - name: "body"
+        in: "body"
+        description: "Change password post body"
         required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
+        schema:
+          $ref: "#/definitions/UserChangePasswordBody"
       responses:
         200:
-          description: "successful operation"
+          description: "Successful operation"
+        400:
+          description: "New password invalid"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /device/{deviceId}/getNotifications:
+    get:
+      tags:
+      - "Mobile"
+      summary: "get notifications"
+      description: "Retrieves the notifications for the given alarm system.\n Notifications are sorted by the timestamp."
+      operationId: "getNotifications"
+      parameters:
+      - name: "deviceId"
+        in: "path"
+        description: "Id of the alarm system device"
+        required: true
+        type: "integer"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Successful operation"
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/Pet"
+              $ref: "#/definitions/Notification"
         400:
-          description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-      deprecated: true
-  /pet/{petId}:
+          description: "Invalid deviceId"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /device/{deviceId}/getDeviceStatus:
     get:
       tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-      - "application/json"
-      - "application/xml"
+      - "Mobile"
+      summary: "get alarm system status"
+      description: "Retrieves the alarm system status.\n Can be one of 2 types: 1 - \"Armed\" or 2 - \"Unarmed\""
+      operationId: "getDeviceStatus"
       parameters:
-      - name: "petId"
+      - name: "deviceId"
         in: "path"
-        description: "ID of pet to return"
+        description: "Id of the alarm system device"
         required: true
         type: "integer"
-        format: "int64"
       responses:
         200:
-          description: "successful operation"
+          description: "Successful operation"
           schema:
-            $ref: "#/definitions/Pet"
+            type: "integer"
         400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - api_key: []
-    post:
-      tags:
-      - "pet"
-      summary: "Updates a pet in the store with form data"
-      description: ""
-      operationId: "updatePetWithForm"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet that needs to be updated"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "name"
-        in: "formData"
-        description: "Updated name of the pet"
-        required: false
-        type: "string"
-      - name: "status"
-        in: "formData"
-        description: "Updated status of the pet"
-        required: false
-        type: "string"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    delete:
-      tags:
-      - "pet"
-      summary: "Deletes a pet"
-      description: ""
-      operationId: "deletePet"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "api_key"
-        in: "header"
-        required: false
-        type: "string"
-      - name: "petId"
-        in: "path"
-        description: "Pet id to delete"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /store/order:
-    post:
-      tags:
-      - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "order placed for purchasing the pet"
-        required: true
-        schema:
-          $ref: "#/definitions/Order"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
-    get:
-      tags:
-      - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.\
-        \ Other values will generated exceptions"
-      operationId: "getOrderById"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of pet that needs to be fetched"
-        required: true
-        type: "integer"
-        maximum: 10
-        minimum: 1
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-    delete:
-      tags:
-      - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.\
-        \ Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of the order that needs to be deleted"
-        required: true
-        type: "integer"
-        minimum: 1
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-  /store/inventory:
-    get:
-      tags:
-      - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-      - api_key: []
-  /user/createWithArray:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/{username}:
-    get:
-      tags:
-      - "user"
-      summary: "Get user by user name"
-      description: ""
-      operationId: "getUserByName"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be fetched. Use user1 for testing. "
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
+          description: "Invalid deviceId"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /device/{deviceId}/updatePin:
     put:
       tags:
-      - "user"
-      summary: "Updated user"
-      description: "This can only be done by the logged in user."
-      operationId: "updateUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
+      - "Mobile"
+      summary: "updates PIN"
+      description: "Updates the PIN for the given alarm system."
+      operationId: "updatePin"
       parameters:
-      - name: "username"
+      - name: "deviceId"
         in: "path"
-        description: "name that need to be updated"
+        description: "Id of the alarm system device"
         required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        description: "Updated user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
+        type: "integer"
       responses:
+        200:
+          description: "Successful operation"
         400:
-          description: "Invalid user supplied"
-        404:
-          description: "User not found"
-    delete:
-      tags:
-      - "user"
-      summary: "Delete user"
-      description: "This can only be done by the logged in user."
-      operationId: "deleteUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be deleted"
-        required: true
-        type: "string"
-      responses:
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
+          description: "Invalid deviceId"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+ 
   /user/login:
-    get:
+    post:
       tags:
-      - "user"
+      - "User"
       summary: "Logs user into the system"
-      description: ""
+      description: "User needs to send correct email and password to login. Return value is the user object from the database."
       operationId: "loginUser"
+      consumes:
+      - "application/json"
       produces:
       - "application/json"
-      - "application/xml"
       parameters:
-      - name: "username"
-        in: "query"
-        description: "The user name for login"
+      - name: "body"
+        in: "body"
+        description: "The user credentials for login"
         required: true
-        type: "string"
-      - name: "password"
-        in: "query"
-        description: "The password for login in clear text"
-        required: true
-        type: "string"
+        schema:
+          $ref: "#/definitions/UserLoginBody"
       responses:
         200:
-          description: "successful operation"
+          description: "Successful operation"
           headers:
             X-Expires-After:
               type: "string"
               format: "date-time"
               description: "date in UTC when token expires"
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
           schema:
-            type: "string"
+            $ref: "#/definitions/User"
         400:
-          description: "Invalid username/password supplied"
+          description: "Invalid email/password supplied"
   /user/logout:
-    get:
+    post:
       tags:
-      - "user"
+      - "User"
       summary: "Logs out current logged in user session"
       description: ""
       operationId: "logoutUser"
-      produces:
-      - "application/json"
-      - "application/xml"
       parameters: []
       responses:
-        default:
-          description: "successful operation"
-  /user:
-    post:
-      tags:
-      - "user"
-      summary: "Create user"
-      description: "This can only be done by the logged in user."
-      operationId: "createUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Created user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
-  petstore_auth:
-    type: "oauth2"
-    authorizationUrl: "https://petstore.swagger.io/oauth/authorize"
-    flow: "implicit"
-    scopes:
-      read:pets: "read your pets"
-      write:pets: "modify pets in your account"
+        200:
+          description: "Successful operation"
+        401:
+          description: "Unauthorized"
 definitions:
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
-  Category:
+  Motion:
     type: "object"
     properties:
       id:
         type: "integer"
-        format: "int64"
-      name:
+      timestamp:
         type: "string"
-    xml:
-      name: "Category"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
-    properties:
-      id:
+      title:
+        type: "string"
+      description:
+        type: "string"
+      zone:
         type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          type: "string"
-          xml:
-            name: "photoUrl"
-      tags:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          xml:
-            name: "tag"
-          $ref: "#/definitions/Tag"
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
     xml:
-      name: "Pet"
-  Tag:
+      name: "Motion"
+  MotionPostBody:
     type: "object"
     properties:
-      id:
+      timestamp:
+        type: "string"
+      zone:
         type: "integer"
-        format: "int64"
-      name:
+      zoneName:
         type: "string"
     xml:
-      name: "Tag"
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-    xml:
-      name: "Order"
+      name: "MotionPostBody"
   User:
     type: "object"
     properties:
       id:
         type: "integer"
-        format: "int64"
-      username:
-        type: "string"
       firstName:
         type: "string"
       lastName:
@@ -705,14 +274,58 @@ definitions:
         type: "string"
       password:
         type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
     xml:
       name: "User"
+  UserLoginBody:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      password:
+        type: "string"
+    xml:
+      name: "UserLoginBody"
+  UserChangePasswordBody:
+    type: "object"
+    properties:
+      userId:
+        type: "integer"
+      oldPassword:
+        type: "string"
+      newPassword:
+        type: "string"
+    xml:
+      name: "UserChangePasswordBody"
+  AlarmSystem:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      user:
+        type: "object"
+      pin:
+        type: "string"
+      status:
+        type: "integer"
+    xml:
+      name: "AlarmSystem"
+  Notification:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      timestamp:
+        type: "string"
+      title:
+        type: "string"
+      description:
+        type: "string"
+      type:
+        type: "integer"
+    xml:
+      name: "Notification"
 externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+  description: "Stranice predmeta"
+  url: "https://www.fer.unizg.hr/predmet/aipz"
